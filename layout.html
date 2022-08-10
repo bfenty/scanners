@@ -1,0 +1,107 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    $(function() {
+    $('[autofocus]:not(:focus)').eq(0).focus();
+    });
+  </script>
+  <style>
+    body {
+      background-color: #{{.Color}};
+    }
+
+    @media only screen and (min-width: 600px) {
+      body {
+        background-color: white;
+      }
+    }
+    div {
+      text-align: center;
+    }
+</style>
+</head>
+{{ if or (eq .Station "pick") (eq .Station "ship")}}
+<body onload="javascript:document.form1.value.focus();">
+    <tr>
+      <td>
+        <div style="background-color:#{{.Color}}; color:white"><h4>{{.Message}}</h4></div>
+        {{if eq .Message "This order has already been scanned. Would you like to override?"}}
+          <div>
+          <form action="/scan" name="form1" id="form1" method="POST">
+            <input type="submit" value="Override" class="btn btn-primary">
+            <input type="hidden" name="value" id="value" value="{{.Order}}">
+            <input type="hidden" id="type" name="type" value="{{.Valuetype}}">
+            <input type="hidden" id="override" name="override" value="override">
+            <input type="hidden" id="user" name="user" value="{{.User}}">
+            <input type="hidden" id="station" name="station" value="{{.Station}}">
+          </form>
+          <form method="GET" action="/">
+            <input type="submit" value="Cancel" class="btn btn-primary">
+            <input type="hidden" id="station" name="station" value="{{.Station}}">
+          </form>
+        </div>
+        {{else}}
+        <form action="/scan" name="form1" id="form1" method="POST">
+      </td>
+    </tr>
+    <tr>
+      <td style="text-align:center">
+        <div class="form-group">
+          <label for="exampleInputEmail1"><h4 style="margin:10px">
+                {{if eq .Valuetype "user"}}SCAN USER ID:{{end}}
+                {{if eq .Valuetype "order"}}SCAN ORDER ID:{{end}}
+              </h4>
+              <p style="margin:0px">{{if eq .Station "pick"}}Picking{{end}}{{if eq .Station "ship"}}Shipping{{end}}</p>
+              </label>
+              <input type="text" class="form-control" name="value" id="value" autofocus="autofocus" style="max-width:500px; margin: 0 auto; display:flex">
+              <input type="hidden" id="type" name="type" value="{{.Valuetype}}">
+              <input type="hidden" id="station" name="station" value="{{.Station}}">
+              {{if eq .Valuetype "order"}}<input type="hidden" id="user" name="user" value="{{.User}}">{{end}}
+              <hr>
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+          </div>
+        </form>
+        <form method="GET" action="/">
+          <div class="form-group">
+          <input type="submit" value="Logout" class="btn btn-primary">
+          </div>
+        </form>
+        {{end}}
+      </td>
+    </tr>
+  </table>
+</body>
+{{else}}
+<body>
+  <div>
+  <table>
+    <tr>
+      <td>
+        <h3>Which Function?</h3>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <form method="GET" action="/">
+          <input type="submit" value="Picking" class="btn btn-primary">
+          <input type="hidden" id="station" name="station" value="pick">
+        </form>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <form method="GET" action="/">
+          <input type="submit" value="Shipping" class="btn btn-primary">
+          <input type="hidden" id="station" name="station" value="ship">
+        </form>
+      </td>
+    </tr>
+  </table>
+</div>
+</body>
+{{end}}
+</html>
