@@ -7,8 +7,6 @@ _ "github.com/go-sql-driver/mysql"
 "fmt"
 "regexp"
 "os"
-// "net/http"
-// "strings"
 )
 
 //Authenticate user from DB
