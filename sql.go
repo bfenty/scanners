@@ -179,7 +179,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
     }
     //set Variables
     //Query
-    var newquery string = "INSERT INTO `scans`(`user`,`ordernum`,`station`) VALUES (?,?,?)"
+    var newquery string = "REPLACE INTO `scans`(`user`,`ordernum`,`station`) VALUES (?,?,?)"
 		// fmt.Println(newquery)
     rows, err := db.Query(newquery,user,ordernum,station)
     if err != nil {
