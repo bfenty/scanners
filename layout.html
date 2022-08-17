@@ -28,7 +28,7 @@
     <tr>
       <td>
         <div style="background-color:#{{.Color}}; color:white"><h4>{{.Message}}</h4></div>
-        {{if eq .Message "This order has already been scanned. Would you like to override?"}}
+        {{if or (eq .Message "This order has already been scanned. Would you like to override?") (eq .Message "This order has not yet been picked. Would you like to override?")}}
           <div>
           <form action="/scan" name="form1" id="form1" method="POST">
             <input type="submit" value="Override" class="btn btn-primary">

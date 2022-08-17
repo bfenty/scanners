@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
   "html/template"
+	"database/sql"
+	_ "github.com/go-sql-driver/mysql"
+	"os"
 )
 
 type Page struct {
@@ -21,7 +24,50 @@ type Message struct {
 	Message string
 }
 
+var db *sql.DB
+
+func opendb() (db *sql.DB, message Message) {
+  // Get a database handle.
+  var err error
+  // var user string
+  fmt.Println("user:",os.Getenv("USER"))
+  fmt.Println("pass:",os.Getenv("PASS"))
+  fmt.Println("server:",os.Getenv("SERVER"))
+  fmt.Println("port:",os.Getenv("PORT"))
+  fmt.Println("Opening Database...")
+  connectstring := os.Getenv("USER")+":"+os.Getenv("PASS")+"@tcp("+os.Getenv("SERVER")+":"+os.Getenv("PORT")+")/orders"
+  db, err = sql.Open("mysql",
+  connectstring)
+  if err != nil {
+    message.Success = false
+    message.Message = err.Error()
+    fmt.Println("Message: ",message.Message)
+    return nil,message
+  }
+
+  fmt.Println("Returning Open DB...")
+    message.Success = true
+    message.Message = "Success"
+  return db,message
+}
+
 func main() {
+	fmt.Println("Starting Application...")
+	var message Message
+	db, message = opendb()
+	fmt.Println(message.Message)
+
+	//Test Connection
+	fmt.Println("Testing DB Connection...")
+	pingErr := db.Ping()
+	if pingErr != nil {
+		message.Success = false
+		message.Message = pingErr.Error()
+		fmt.Println("Message: ",message.Message)
+	}
+	fmt.Println("DB Opened...")
+
+	//http handlers
 	http.HandleFunc("/", pick)
   http.HandleFunc("/scan", scan)
 	http.ListenAndServe(":8080", nil)
@@ -67,7 +113,7 @@ func pick(w http.ResponseWriter, r *http.Request) {
 	Data.Color=r.URL.Query().Get("color")
 	Data.Order=r.URL.Query().Get("order")
 	Data.Station=r.URL.Query().Get("station")
-	fmt.Println(Data.Station)
+	// fmt.Println(Data.Station)
 	if Data.Color == "" {
 		Data.Color = "9ccdff"
 	}

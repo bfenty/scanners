@@ -1,12 +1,12 @@
 package main
 
 import (
-"database/sql"
+// "database/sql"
 _ "github.com/go-sql-driver/mysql"
 // "log"
 "fmt"
 "regexp"
-"os"
+// "os"
 )
 
 //Authenticate user from DB
@@ -14,11 +14,8 @@ func userauth(userid string) (message Message){
     // Get a database handle.
     var err error
     var user string
-    fmt.Println("user:",os.Getenv("USER"))
-    fmt.Println("pass:",os.Getenv("PASS"))
-    fmt.Println("server:",os.Getenv("SERVER"))
-    fmt.Println("port:",os.Getenv("PORT"))
 
+    //Define Regular Expression
     reg, err := regexp.Compile("[^0-9]+")
     if err != nil {
       message.Success = false
@@ -26,28 +23,20 @@ func userauth(userid string) (message Message){
       fmt.Println("Message: ",message.Message)
       return message
     }
-    connectstring := os.Getenv("USER")+":"+os.Getenv("PASS")+"@tcp("+os.Getenv("SERVER")+":"+os.Getenv("PORT")+")/orders"
-    db, err := sql.Open("mysql",
-		connectstring)
-    if err != nil {
-      message.Success = false
-      message.Message = err.Error()
-      fmt.Println("Message: ",message.Message)
-      db.Close()
-      return message
-    }
 
     //Test Connection
+    fmt.Println("Testing DB Connection...")
     pingErr := db.Ping()
     if pingErr != nil {
+  	  db, message = opendb()
       message.Success = false
       message.Message = pingErr.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
+
     //set Variables
-    //Query
+    fmt.Println("Executing Query...")
     var newquery string = "select username from users where usercode = ?"
 		// fmt.Println(newquery)
     rows, err := db.Query(newquery,reg.ReplaceAllString(userid, ""))
@@ -55,10 +44,10 @@ func userauth(userid string) (message Message){
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
-    defer rows.Close()
+    // defer rows.Close()
+
     //Pull Data
     for rows.Next() {
     	err := rows.Scan(&user)
@@ -66,23 +55,22 @@ func userauth(userid string) (message Message){
         message.Success = false
         message.Message = err.Error()
         fmt.Println("Message: ",message.Message)
-        db.Close()
         return message
     	}
     }
     err = rows.Err()
     if err != nil {
+      rows.Close()
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
 	if user == "" {
+    rows.Close()
     message.Success = false
     message.Message = "User not found. Please scan again."
     fmt.Println("Message: ",message.Message)
-    db.Close()
 		return message
 	}
 
@@ -90,14 +78,15 @@ func userauth(userid string) (message Message){
   message.User = user
   message.Message = "Success"
   fmt.Println("Message: ",message.Message)
-  db.Close()
+  rows.Close()
   return message
 }
 
 //Authenticate user from DB
 func insert(user string, ordernum string, station string, override bool) (message Message){
-    //// DEBUG:
     fmt.Println("USER:"+user+" ORDER:"+ordernum)
+
+    //Define Regular Expression
     reg, err := regexp.Compile("[^0-9]+")
     if err != nil {
       message.Success = false
@@ -105,6 +94,8 @@ func insert(user string, ordernum string, station string, override bool) (messag
       fmt.Println("Message: ",message.Message)
       return message
     }
+
+    //Check if Order Number is non-numeric
     if len(ordernum) != len(reg.ReplaceAllString(ordernum, "")) {
       message.Success = false
       message.Message = "This doesn't appear to be a valid order id, please scan again"
@@ -112,83 +103,69 @@ func insert(user string, ordernum string, station string, override bool) (messag
       return message
     }
 
-    // Get a database handle.
-    // var err error
-
-    //open the database
-    connectstring := os.Getenv("USER")+":"+os.Getenv("PASS")+"@tcp("+os.Getenv("SERVER")+":"+os.Getenv("PORT")+")/orders"
-    db, err := sql.Open("mysql",
-		connectstring)
-    if err != nil {
-        message.Success = false
-        message.Message = err.Error()
-        fmt.Println("Message: ",message.Message)
-        db.Close()
-        return message
-    }
-
     //Test Connection
+    fmt.Println("Testing DB Connection...")
     pingErr := db.Ping()
     if pingErr != nil {
+  	    db, message = opendb()
         message.Success = false
         message.Message = err.Error()
         fmt.Println("Message: ",message.Message)
-        db.Close()
         return message
     }
 
     //Check if the order number is picked before shipping
     if (override == false) && (station=="ship") {
-    fmt.Println("Checking if the order was picked...")
-    var testquery string = "SELECT COUNT(*) from scans where ordernum = ? AND station = ?"
-    rows2, err := db.Query(testquery,ordernum,"pick")
-    if err != nil {
-      message.Success = false
-      message.Message = err.Error()
-      fmt.Println("Message: ",message.Message)
-      db.Close()
-      return message
-    }
-    var val uint
-    if rows2.Next() {
-      rows2.Scan(&val)
-    }
-    if(val == 0) {
-      fmt.Println(val)
-      fmt.Println("Order being shipped but not yet picked.")
-      message.Success = false
-      message.Message = "This order has not yet been picked. Would you like to override?"
-      fmt.Println("Message: ",message.Message)
-      db.Close()
-      return message
-    }
+      fmt.Println("Checking if the order was picked...")
+      var testquery string = "SELECT COUNT(*) from scans where ordernum = ? AND station = ?"
+      rows2, err := db.Query(testquery,ordernum,"pick")
+      if err != nil {
+        rows2.Close()
+        message.Success = false
+        message.Message = err.Error()
+        fmt.Println("Message: ",message.Message)
+        return message
+      }
+      var val uint
+      if rows2.Next() {
+        rows2.Scan(&val)
+      }
+      rows2.Close()
+      if(val == 0) {
+        fmt.Println(val)
+        fmt.Println("Order being shipped but not yet picked.")
+        message.Success = false
+        message.Message = "This order has not yet been picked. Would you like to override?"
+        fmt.Println("Message: ",message.Message)
+        return message
+      }
     }
 
     //Check if the order number is already inserted
     if override == false {
-    fmt.Println("Checking if the order already exists...")
-    var testquery string = "SELECT COUNT(*) from scans where ordernum = ? AND station = ?"
-    rows2, err := db.Query(testquery,ordernum,station)
-    if err != nil {
-      message.Success = false
-      message.Message = err.Error()
-      fmt.Println("Message: ",message.Message)
-      db.Close()
-      return message
-    }
-    var val uint
-    if rows2.Next() {
-      rows2.Scan(&val)
-    }
-    if(val > 0) {
-      fmt.Println(val)
-      fmt.Println("Already Entered")
-      message.Success = false
-      message.Message = "This order has already been scanned. Would you like to override?"
-      fmt.Println("Message: ",message.Message)
-      db.Close()
-      return message
-    }
+      fmt.Println("Checking if the order already exists...")
+      var testquery string = "SELECT COUNT(*) from scans where ordernum = ? AND station = ?"
+      rows2, err := db.Query(testquery,ordernum,station)
+      if err != nil {
+        rows2.Close()
+        message.Success = false
+        message.Message = err.Error()
+        fmt.Println("Message: ",message.Message)
+        return message
+      }
+      var val uint
+      if rows2.Next() {
+        rows2.Scan(&val)
+      }
+      rows2.Close()
+      if(val > 0) {
+        fmt.Println(val)
+        fmt.Println("Already Entered")
+        message.Success = false
+        message.Message = "This order has already been scanned. Would you like to override?"
+        fmt.Println("Message: ",message.Message)
+        return message
+      }
     }
     //set Variables
     //Query
@@ -196,24 +173,24 @@ func insert(user string, ordernum string, station string, override bool) (messag
 		// fmt.Println(newquery)
     rows, err := db.Query(newquery,user,ordernum,station)
     if err != nil {
+      rows.Close()
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
     err = rows.Err()
     if err != nil {
+      rows.Close()
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
+    rows.Close()
 
     message.Success = true
     message.Message = "Success"
     fmt.Println("Message: ",message.Message)
-    db.Close()
     return message
 }
