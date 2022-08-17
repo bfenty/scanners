@@ -103,14 +103,12 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
     if len(ordernum) != len(reg.ReplaceAllString(ordernum, "")) {
       message.Success = false
       message.Message = "This doesn't appear to be a valid order id, please scan again"
       fmt.Println("Message: ",message.Message)
-      db.Close()
       return message
     }
 
