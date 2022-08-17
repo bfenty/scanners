@@ -33,6 +33,7 @@ func userauth(userid string) (message Message){
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
 
@@ -42,6 +43,7 @@ func userauth(userid string) (message Message){
       message.Success = false
       message.Message = pingErr.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     //set Variables
@@ -53,6 +55,7 @@ func userauth(userid string) (message Message){
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     defer rows.Close()
@@ -63,6 +66,7 @@ func userauth(userid string) (message Message){
         message.Success = false
         message.Message = err.Error()
         fmt.Println("Message: ",message.Message)
+        db.Close()
         return message
     	}
     }
@@ -71,12 +75,14 @@ func userauth(userid string) (message Message){
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
 	if user == "" {
     message.Success = false
     message.Message = "User not found. Please scan again."
     fmt.Println("Message: ",message.Message)
+    db.Close()
 		return message
 	}
 
@@ -84,6 +90,7 @@ func userauth(userid string) (message Message){
   message.User = user
   message.Message = "Success"
   fmt.Println("Message: ",message.Message)
+  db.Close()
   return message
 }
 
@@ -96,12 +103,14 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     if len(ordernum) != len(reg.ReplaceAllString(ordernum, "")) {
       message.Success = false
       message.Message = "This doesn't appear to be a valid order id, please scan again"
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
 
@@ -116,6 +125,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
         message.Success = false
         message.Message = err.Error()
         fmt.Println("Message: ",message.Message)
+        db.Close()
         return message
     }
 
@@ -125,6 +135,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
         message.Success = false
         message.Message = err.Error()
         fmt.Println("Message: ",message.Message)
+        db.Close()
         return message
     }
 
@@ -137,6 +148,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     var val uint
@@ -149,6 +161,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = "This order has not yet been picked. Would you like to override?"
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     }
@@ -162,6 +175,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     var val uint
@@ -174,6 +188,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = "This order has already been scanned. Would you like to override?"
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     }
@@ -186,6 +201,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
     err = rows.Err()
@@ -193,11 +209,13 @@ func insert(user string, ordernum string, station string, override bool) (messag
       message.Success = false
       message.Message = err.Error()
       fmt.Println("Message: ",message.Message)
+      db.Close()
       return message
     }
 
     message.Success = true
     message.Message = "Success"
     fmt.Println("Message: ",message.Message)
+    db.Close()
     return message
 }
