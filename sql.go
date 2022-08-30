@@ -76,7 +76,7 @@ func userauth(userid string) (message Message){
 
   message.Success = true
   message.User = user
-  message.Message = "Success"
+  message.Message = "Success: User "+userid
   fmt.Println("Message: ",message.Message)
   rows.Close()
   return message
@@ -190,7 +190,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
     rows.Close()
 
     message.Success = true
-    message.Message = "Success"
+    message.Message = "Success: Order #"+ordernum
     fmt.Println("Message: ",message.Message)
     return message
 }
