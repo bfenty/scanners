@@ -113,7 +113,6 @@ func pick(w http.ResponseWriter, r *http.Request) {
 	Data.Color=r.URL.Query().Get("color")
 	Data.Order=r.URL.Query().Get("order")
 	Data.Station=r.URL.Query().Get("station")
-	// fmt.Println(Data.Station)
 	if Data.Color == "" {
 		Data.Color = "9ccdff"
 	}

@@ -190,7 +190,7 @@ func insert(user string, ordernum string, station string, override bool) (messag
     rows.Close()
 
     message.Success = true
-    message.Message = "Success: Order #"+ordernum
+    message.Message = "Success: Order "+ordernum
     fmt.Println("Message: ",message.Message)
     return message
 }
